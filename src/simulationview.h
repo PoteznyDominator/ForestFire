@@ -1,40 +1,10 @@
 #ifndef SIMULATIONVIEW_H
 #define SIMULATIONVIEW_H
 
+#include "simulationworker.h"
+
 #include <QGraphicsPixmapItem>
 #include <QGraphicsView>
-
-enum class CellType {
-   Grass,
-   Water,
-   Fire,
-   Dirt,
-};
-
-typedef QVector<QVector<CellType>> Matrix;
-
-class SimulationWorker : public QObject {
-   Q_OBJECT
-
-public:
-   SimulationWorker(const Matrix& map, QObject* parent = nullptr);
-
-   void simulate();
-   void abort();
-
-signals:
-   void matrixChanged(const Matrix& map);
-   void finished();
-
-private:
-   bool m_isAbort = false;
-   float m_probability = 0.3f;
-   int m_size;
-   Matrix m_map;
-
-   bool isAdjacentFire(int x, int y);
-   bool isSimulationEnd();
-};
 
 class SimulationView : public QGraphicsView {
    Q_OBJECT
@@ -43,23 +13,30 @@ public:
    ~SimulationView();
 
    void simulate();
+   void stop();
+   void generateMap(int mapSize);
+
+signals:
+   void finished();
 
 protected:
    void wheelEvent(QWheelEvent* event) override;
+   void mousePressEvent(QMouseEvent* event) override;
+   void mouseReleaseEvent(QMouseEvent* event) override;
+   void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
+   bool m_simulationRunning = false;
+   int m_originX;
+   int m_originY;
+
    QGraphicsPixmapItem* m_pixmap;
    SimulationWorker* m_worker;
    QThread* m_workerThread;
 
    void updatePixmap(const Matrix& map);
 
-   Matrix initializeMap(int size);
-   CellType getCellType(float value);
    QPixmap getPixmap(const Matrix& map);
-
-signals:
-   void simulateRequested();
 };
 
 #endif // SIMULATIONVIEW_H

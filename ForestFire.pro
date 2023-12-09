@@ -11,13 +11,17 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     src/centralwidget.cpp \
+    src/controlpanel.cpp \
     src/mainwindow.cpp \
-    src/simulationview.cpp
+    src/simulationview.cpp \
+    src/simulationworker.cpp
 
 HEADERS += \
     src/centralwidget.h \
+    src/controlpanel.h \
     src/mainwindow.h \
-    src/simulationview.h
+    src/simulationview.h \
+    src/simulationworker.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
