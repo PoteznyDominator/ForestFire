@@ -1,14 +1,19 @@
 #include "simulationworker.h"
+#include "vendor/FastNoiseLite.h"
 
 #include <QRandomGenerator>
 #include <QThread>
 
 namespace {
-CellType getCellType(float value) {
-   if (value < 0.4) {
+CellType getCellType(float value, float moist) {
+   if (value < 0.35) {
       return CellType::Water;
    } else {
-      return CellType::Grass;
+      if (moist < 0.5) {
+         return CellType::Tree;
+      } else {
+         return CellType::Grass;
+      }
    }
 }
 } // namespace
@@ -25,7 +30,9 @@ void SimulationWorker::simulate() {
       copy = m_map;
       for (int x = 0; x < m_size; x++) {
          for (int y = 0; y < m_size; y++) {
-            if (isAdjacentFire(x, y) && copy[x][y] == CellType::Grass &&
+            if (isAdjacentFire(x, y) &&
+                (copy[x][y] == CellType::Grass ||
+                 copy[x][y] == CellType::Tree) &&
                 QRandomGenerator::global()->generateDouble() < m_probability) {
                copy[x][y] = CellType::Fire;
                continue;
@@ -39,7 +46,7 @@ void SimulationWorker::simulate() {
       m_map = copy;
 
       emit matrixChanged(m_map);
-      QThread::msleep(100);
+      QThread::msleep(10);
    }
 
    emit finished();
@@ -54,32 +61,38 @@ void SimulationWorker::setFire(const QPoint& pos) {
    if (pos.x() >= m_size || pos.x() < 0 || pos.y() >= m_size || pos.y() < 0) {
       return;
    }
-   qDebug() << pos;
 
-   if (m_map[pos.x()][pos.y()] == CellType::Grass) {
+   if (m_map[pos.x()][pos.y()] == CellType::Grass ||
+       m_map[pos.x()][pos.y()] == CellType::Tree) {
       m_map[pos.x()][pos.y()] = CellType::Fire;
       emit matrixChanged(m_map);
    }
 }
 
 Matrix SimulationWorker::generateMap(int size) {
-   noise.SetSeed(QRandomGenerator::global()->generate());
-   noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-   noise.SetFractalOctaves(5);
-   noise.SetFrequency(0.02f);
-   //   noise.SetFractalGain(0.3f);
-   //   noise.SetFrequency(0.02f);
+   FastNoiseLite alt;
+   alt.SetSeed(QRandomGenerator::global()->generate());
+   alt.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+   alt.SetFractalOctaves(5);
+   alt.SetFrequency(0.03f);
+
+   FastNoiseLite moist;
+   moist.SetSeed(QRandomGenerator::global()->generate());
+   moist.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+   moist.SetFractalOctaves(5);
+   moist.SetFrequency(0.0185f);
+   moist.SetFractalGain(8.f);
 
    m_size = size;
    Matrix map(size, QVector<CellType>(size, CellType::Grass));
 
    for (int i = 0; i < size; i++) {
       for (int j = 0; j < size; j++) {
-         // normalizing value [0, 1]
-         float value = noise.GetNoise((float) i, (float) j);
-         value = (value + 1) / 2;
+         // normalizing values [0, 1]
+         float a = (alt.GetNoise((float) i, (float) j) + 1) / 2;
+         float m = (moist.GetNoise((float) i, (float) j) + 1) / 2;
 
-         map[i][j] = getCellType(value);
+         map[i][j] = getCellType(a, m);
       }
    }
 

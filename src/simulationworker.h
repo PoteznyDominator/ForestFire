@@ -1,12 +1,11 @@
 #ifndef SIMULATIONWORKER_H
 #define SIMULATIONWORKER_H
 
-#include "vendor/FastNoiseLite.h"
-
 #include <QWidget>
 
 enum class CellType {
    Grass,
+   Tree,
    Water,
    Fire,
    Dirt,
@@ -31,7 +30,6 @@ signals:
    void finished();
 
 private:
-   FastNoiseLite noise;
    Matrix m_map;
    int m_size;
    bool m_isAbort = false;

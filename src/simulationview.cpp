@@ -7,10 +7,9 @@ namespace {
 const float zoomScaleFactor = 1.5f;
 
 const QMap<CellType, QColor> cellColors = {
-      {CellType::Dirt, Qt::black},
-      {CellType::Grass, Qt::darkGreen},
-      {CellType::Water, Qt::darkBlue},
-      {CellType::Fire, Qt::red},
+      {CellType::Dirt, QColor("#493c2b")}, {CellType::Grass, QColor("#44891a")},
+      {CellType::Tree, QColor("#115e33")}, {CellType::Water, QColor("#2395C6")},
+      {CellType::Fire, QColor("#ec4700")},
 };
 } // namespace
 
@@ -82,7 +81,7 @@ void SimulationView::mousePressEvent(QMouseEvent* event) {
       setCursor(Qt::ClosedHandCursor);
    }
 
-   if (event->button() == Qt::LeftButton && !m_simulationRunning) {
+   if (!m_simulationRunning && event->button() == Qt::LeftButton) {
       const auto pos = mapToScene(event->pos()).toPoint();
       m_worker->setFire(pos);
    }
@@ -107,6 +106,11 @@ void SimulationView::mouseMoveEvent(QMouseEvent* event) {
       m_originX = event->position().x();
       m_originY = event->position().y();
       setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+   }
+
+   if (!m_simulationRunning && event->buttons() & Qt::LeftButton) {
+      const auto pos = mapToScene(event->pos()).toPoint();
+      m_worker->setFire(pos);
    }
 }
 

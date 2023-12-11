@@ -22,6 +22,7 @@ CentralWidget::CentralWidget(QWidget* parent)
            &SimulationView::stop);
    connect(controlPanel, &ControlPanel::generateMap, view,
            &SimulationView::generateMap);
+
    connect(view, &SimulationView::finished, controlPanel,
            &ControlPanel::onSimulationFinished);
 }
