@@ -11,7 +11,7 @@ public:
    void onSimulationFinished();
 
 signals:
-   void simulationRequested();
+   void simulationRequested(int grassProb, int treeProb);
    void abortRequested();
    void generateMap(int size);
 

@@ -36,6 +36,30 @@ void ControlPanel::setupWidget() {
    connect(mapGenBtn, &QPushButton::clicked, this,
            [=] { emit generateMap(mapSize->value()); });
 
+   // Setting simulation probabilities
+   auto* probSection = new QGroupBox("Likelihood of fire");
+   auto* probLayout = new QGridLayout;
+
+   auto* grassProb = new QSpinBox;
+   grassProb->setMinimum(0);
+   grassProb->setMaximum(101);
+   grassProb->setSingleStep(1);
+   grassProb->setValue(80);
+
+   auto* treeProb = new QSpinBox;
+   treeProb->setMinimum(0);
+   treeProb->setMaximum(101);
+   treeProb->setSingleStep(1);
+   treeProb->setValue(40);
+
+   probLayout->addWidget(new QLabel("Grass (%):"), 0, 0);
+   probLayout->addWidget(grassProb, 0, 1);
+
+   probLayout->addWidget(new QLabel("Tree (%):"), 1, 0);
+   probLayout->addWidget(treeProb, 1, 1);
+
+   probSection->setLayout(probLayout);
+
    // Setting control panel
    auto* controlLayout = new QHBoxLayout;
    auto* startBtn = new QPushButton("Start", this);
@@ -45,16 +69,19 @@ void ControlPanel::setupWidget() {
    controlLayout->addWidget(startBtn);
    controlLayout->addWidget(stopBtn);
 
-   connect(startBtn, &QPushButton::clicked, this,
-           &ControlPanel::simulationRequested);
+   connect(startBtn, &QPushButton::clicked, this, [=] {
+      emit simulationRequested(grassProb->value(), treeProb->value());
+   });
    connect(stopBtn, &QPushButton::clicked, this, &ControlPanel::abortRequested);
    connect(this, &ControlPanel::simulationRequested, this, [=] {
       mapGenSection->setDisabled(true);
+      probSection->setDisabled(true);
       startBtn->setDisabled(true);
       stopBtn->setEnabled(true);
    });
    connect(this, &ControlPanel::abortRequested, this, [=] {
       mapGenSection->setEnabled(true);
+      probSection->setEnabled(true);
       startBtn->setEnabled(true);
       stopBtn->setDisabled(true);
    });
@@ -62,6 +89,7 @@ void ControlPanel::setupWidget() {
    // Setting main layout
    auto* mainLayout = new QVBoxLayout;
    mainLayout->addWidget(mapGenSection);
+   mainLayout->addWidget(probSection);
    mainLayout->addStretch();
    mainLayout->addLayout(controlLayout);
 

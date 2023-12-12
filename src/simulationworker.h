@@ -9,6 +9,7 @@ enum class CellType {
    Water,
    Fire,
    Dirt,
+   Barrier,
 };
 
 typedef QVector<QVector<CellType>> Matrix;
@@ -19,9 +20,11 @@ class SimulationWorker : public QObject {
 public:
    SimulationWorker(QObject* parent = nullptr);
 
+   void setProbability(int grassProb, int treeProb);
    void simulate();
    void abort();
    void setFire(const QPoint& pos);
+   void setBarrier(const QPoint& pos);
 
    Matrix generateMap(int size);
 
@@ -33,7 +36,11 @@ private:
    Matrix m_map;
    int m_size;
    bool m_isAbort = false;
-   float m_probability = 0.3f;
+   // probabilities with default parameters
+   QMap<CellType, float> m_probabilities = {
+         {CellType::Tree, 0.3},
+         {CellType::Grass, 0.8},
+   };
 
    bool isAdjacentFire(int x, int y);
    bool isSimulationEnd();

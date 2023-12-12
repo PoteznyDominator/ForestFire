@@ -12,7 +12,7 @@ public:
    SimulationView(int size, QWidget* parent = nullptr);
    ~SimulationView();
 
-   void simulate();
+   void simulate(int grassProb, int treeProb);
    void stop();
    void generateMap(int mapSize);
 

@@ -7,9 +7,12 @@ namespace {
 const float zoomScaleFactor = 1.5f;
 
 const QMap<CellType, QColor> cellColors = {
-      {CellType::Dirt, QColor("#493c2b")}, {CellType::Grass, QColor("#44891a")},
-      {CellType::Tree, QColor("#115e33")}, {CellType::Water, QColor("#2395C6")},
-      {CellType::Fire, QColor("#ec4700")},
+      {CellType::Dirt, QColor(73, 60, 43)},
+      {CellType::Grass, QColor(68, 137, 26)},
+      {CellType::Tree, QColor(17, 94, 51)},
+      {CellType::Water, QColor(35, 149, 198)},
+      {CellType::Fire, QColor(236, 71, 0)},
+      {CellType::Barrier, Qt::gray},
 };
 } // namespace
 
@@ -45,7 +48,8 @@ SimulationView::~SimulationView() {
    m_workerThread->deleteLater();
 }
 
-void SimulationView::simulate() {
+void SimulationView::simulate(int grassProb, int treeProb) {
+   m_worker->setProbability(grassProb, treeProb);
    m_workerThread->start();
    m_simulationRunning = true;
 }
@@ -63,13 +67,19 @@ void SimulationView::generateMap(int mapSize) {
 }
 
 void SimulationView::wheelEvent(QWheelEvent* event) {
-   setTransformationAnchor(AnchorUnderMouse);
+   setTransformationAnchor(NoAnchor);
+
+   const auto oldPos = mapToScene(event->position().toPoint());
 
    if (event->angleDelta().y() > 0) {
       scale(zoomScaleFactor, zoomScaleFactor);
    } else {
       scale(1 / zoomScaleFactor, 1 / zoomScaleFactor);
    }
+
+   const auto newPos = mapToScene(event->position().toPoint());
+   const auto delta = newPos - oldPos;
+   translate(delta.x(), delta.y());
    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 }
 
@@ -84,6 +94,11 @@ void SimulationView::mousePressEvent(QMouseEvent* event) {
    if (!m_simulationRunning && event->button() == Qt::LeftButton) {
       const auto pos = mapToScene(event->pos()).toPoint();
       m_worker->setFire(pos);
+   }
+
+   if (!m_simulationRunning && event->button() == Qt::RightButton) {
+      const auto pos = mapToScene(event->pos()).toPoint();
+      m_worker->setBarrier(pos);
    }
 }
 
@@ -111,6 +126,11 @@ void SimulationView::mouseMoveEvent(QMouseEvent* event) {
    if (!m_simulationRunning && event->buttons() & Qt::LeftButton) {
       const auto pos = mapToScene(event->pos()).toPoint();
       m_worker->setFire(pos);
+   }
+
+   if (!m_simulationRunning && event->buttons() & Qt::RightButton) {
+      const auto pos = mapToScene(event->pos()).toPoint();
+      m_worker->setBarrier(pos);
    }
 }
 

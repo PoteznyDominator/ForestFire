@@ -21,6 +21,11 @@ CellType getCellType(float value, float moist) {
 SimulationWorker::SimulationWorker(QObject* parent)
    : QObject(parent) {}
 
+void SimulationWorker::setProbability(int grassProb, int treeProb) {
+   m_probabilities[CellType::Grass] = grassProb / 100.f;
+   m_probabilities[CellType::Tree] = treeProb / 100.f;
+}
+
 void SimulationWorker::simulate() {
    // init value
    m_isAbort = false;
@@ -30,15 +35,16 @@ void SimulationWorker::simulate() {
       copy = m_map;
       for (int x = 0; x < m_size; x++) {
          for (int y = 0; y < m_size; y++) {
+            const auto cell = copy[x][y];
             if (isAdjacentFire(x, y) &&
-                (copy[x][y] == CellType::Grass ||
-                 copy[x][y] == CellType::Tree) &&
-                QRandomGenerator::global()->generateDouble() < m_probability) {
+                (cell == CellType::Grass || cell == CellType::Tree) &&
+                QRandomGenerator::global()->generateDouble() <
+                      m_probabilities.value(cell)) {
                copy[x][y] = CellType::Fire;
                continue;
             }
 
-            if (copy[x][y] == CellType::Fire) {
+            if (cell == CellType::Fire) {
                copy[x][y] = CellType::Dirt;
             }
          }
@@ -65,6 +71,18 @@ void SimulationWorker::setFire(const QPoint& pos) {
    if (m_map[pos.x()][pos.y()] == CellType::Grass ||
        m_map[pos.x()][pos.y()] == CellType::Tree) {
       m_map[pos.x()][pos.y()] = CellType::Fire;
+      emit matrixChanged(m_map);
+   }
+}
+
+void SimulationWorker::setBarrier(const QPoint& pos) {
+   if (pos.x() >= m_size || pos.x() < 0 || pos.y() >= m_size || pos.y() < 0) {
+      return;
+   }
+
+   if (m_map[pos.x()][pos.y()] == CellType::Grass ||
+       m_map[pos.x()][pos.y()] == CellType::Tree) {
+      m_map[pos.x()][pos.y()] = CellType::Barrier;
       emit matrixChanged(m_map);
    }
 }
