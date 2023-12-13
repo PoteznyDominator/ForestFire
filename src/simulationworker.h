@@ -3,6 +3,12 @@
 
 #include <QWidget>
 
+struct SimulationResult {
+   int iterationCount = 0;
+   int burnedGround = 0;
+   int grassCount = 0;
+};
+
 enum class CellType {
    Grass,
    Tree,
@@ -30,15 +36,16 @@ public:
 
 signals:
    void matrixChanged(const Matrix& map);
-   void finished();
+   void finished(SimulationResult results);
 
 private:
+   SimulationResult m_results;
    Matrix m_map;
    int m_size;
    bool m_isAbort = false;
    // probabilities with default parameters
    QMap<CellType, float> m_probabilities = {
-         {CellType::Tree, 0.3},
+         {CellType::Tree, 0.4},
          {CellType::Grass, 0.8},
    };
 

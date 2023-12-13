@@ -17,7 +17,7 @@ public:
    void generateMap(int mapSize);
 
 signals:
-   void finished();
+   void finished(SimulationResult results);
 
 protected:
    void wheelEvent(QWheelEvent* event) override;

@@ -29,10 +29,12 @@ void SimulationWorker::setProbability(int grassProb, int treeProb) {
 void SimulationWorker::simulate() {
    // init value
    m_isAbort = false;
+   m_results = SimulationResult{};
 
    Matrix copy;
    while (!isSimulationEnd() && !m_isAbort) {
       copy = m_map;
+      m_results.iterationCount++;
       for (int x = 0; x < m_size; x++) {
          for (int y = 0; y < m_size; y++) {
             const auto cell = copy[x][y];
@@ -55,7 +57,18 @@ void SimulationWorker::simulate() {
       QThread::msleep(10);
    }
 
-   emit finished();
+   for (int x = 0; x < m_size; x++) {
+      for (int y = 0; y < m_size; y++) {
+         if (m_map[x][y] == CellType::Dirt) {
+            m_results.burnedGround++;
+         } else if (m_map[x][y] == CellType::Grass ||
+                    m_map[x][y] == CellType::Tree) {
+            m_results.grassCount++;
+         }
+      }
+   }
+
+   emit finished(m_results);
 }
 
 void SimulationWorker::abort() {

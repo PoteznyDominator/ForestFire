@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/forest-fire.ico</file>
+    </qresource>
+</RCC>

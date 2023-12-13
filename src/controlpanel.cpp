@@ -11,8 +11,9 @@ ControlPanel::ControlPanel(QWidget* parent)
    setupWidget();
 }
 
-void ControlPanel::onSimulationFinished() {
+void ControlPanel::onSimulationFinished(SimulationResult results) {
    emit abortRequested();
+   setResultMessage(results);
 }
 
 void ControlPanel::setupWidget() {
@@ -60,6 +61,9 @@ void ControlPanel::setupWidget() {
 
    probSection->setLayout(probLayout);
 
+   // Result label
+   m_resultsLabel = new QLabel();
+
    // Setting control panel
    auto* controlLayout = new QHBoxLayout;
    auto* startBtn = new QPushButton("Start", this);
@@ -74,6 +78,7 @@ void ControlPanel::setupWidget() {
    });
    connect(stopBtn, &QPushButton::clicked, this, &ControlPanel::abortRequested);
    connect(this, &ControlPanel::simulationRequested, this, [=] {
+      m_resultsLabel->setText("Simulation is running");
       mapGenSection->setDisabled(true);
       probSection->setDisabled(true);
       startBtn->setDisabled(true);
@@ -91,7 +96,26 @@ void ControlPanel::setupWidget() {
    mainLayout->addWidget(mapGenSection);
    mainLayout->addWidget(probSection);
    mainLayout->addStretch();
+   mainLayout->addWidget(m_resultsLabel);
    mainLayout->addLayout(controlLayout);
 
    setLayout(mainLayout);
+}
+
+void ControlPanel::setResultMessage(const SimulationResult& results) {
+   const auto ratio = (float) results.burnedGround /
+                      (float) (results.burnedGround + results.grassCount) * 100;
+
+   const auto resultMessage =
+         QString("Simulation has finished!\n"
+                 "Number of iterations: %1\n"
+                 "Number of burned ground: %2\n"
+                 "Total number of grass/trees: %3\n"
+                 "Burned/grass ratio: %4%")
+               .arg(results.iterationCount)
+               .arg(results.burnedGround)
+               .arg(results.burnedGround + results.grassCount)
+               .arg(QString::number(ratio, 'G', 4));
+
+   m_resultsLabel->setText(resultMessage);
 }
