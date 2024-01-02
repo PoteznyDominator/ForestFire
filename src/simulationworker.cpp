@@ -31,6 +31,29 @@ void SimulationWorker::simulate() {
    m_isAbort = false;
    m_results = SimulationResult{};
 
+   bool randomFire = false;
+   for (int x = 0; x < m_size; x++) {
+      for (int y = 0; y < m_size; y++) {
+         if (m_map[x][y] == CellType::Fire) {
+            randomFire = true;
+            break;
+         }
+      }
+   }
+
+   if (!randomFire) {
+      while (!randomFire) {
+         int randomRow = QRandomGenerator::global()->bounded(m_size);
+         int randomCol = QRandomGenerator::global()->bounded(m_size);
+
+         if (m_map[randomRow][randomCol] == CellType::Grass ||
+             m_map[randomRow][randomCol] == CellType::Tree) {
+            randomFire = true;
+            m_map[randomRow][randomCol] = CellType::Fire;
+         }
+      }
+   }
+
    Matrix copy;
    while (!isSimulationEnd() && !m_isAbort) {
       copy = m_map;
